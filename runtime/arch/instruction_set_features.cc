@@ -255,6 +255,7 @@ const InstructionSetFeatures* InstructionSetFeatures::AddFeaturesFromString(
   // ones in the list. So logically, we check "default -> features.empty."
   DCHECK(!use_default || features.empty());
 
+  smp = false;
   return AddFeaturesFromSplitString(smp, features, error_msg);
 }
 

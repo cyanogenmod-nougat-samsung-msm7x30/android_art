@@ -76,7 +76,7 @@ class InstructionSetFeatures {
 
   // Does the instruction set variant require instructions for correctness with SMP?
   bool IsSmp() const {
-    return smp_;
+    return false;
   }
 
   // Down cast this ArmInstructionFeatures.

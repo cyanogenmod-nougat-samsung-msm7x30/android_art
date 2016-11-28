@@ -35,9 +35,8 @@ namespace art {
 
 const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromVariant(
     const std::string& variant, std::string* error_msg) {
-  // Assume all ARM processors are SMP.
-  // TODO: set the SMP support based on variant.
-  const bool smp = true;
+  // Disable SMP default
+  const bool smp = false;
 
   // Look for variants that have divide support.
   static const char* arm_variants_with_div[] = {
@@ -104,11 +103,12 @@ const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromBitmap(uint32_t 
   bool smp = (bitmap & kSmpBitfield) != 0;
   bool has_div = (bitmap & kDivBitfield) != 0;
   bool has_atomic_ldrd_strd = (bitmap & kAtomicLdrdStrdBitfield) != 0;
+  smp = false;
   return new ArmInstructionSetFeatures(smp, has_div, has_atomic_ldrd_strd);
 }
 
 const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromCppDefines() {
-  const bool smp = true;
+  const bool smp = false;
 #if defined(__ARM_ARCH_EXT_IDIV__)
   const bool has_div = true;
 #else
@@ -157,6 +157,7 @@ const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromCpuInfo() {
   } else {
     LOG(ERROR) << "Failed to open /proc/cpuinfo";
   }
+  smp = false;
   return new ArmInstructionSetFeatures(smp, has_div, has_lpae);
 }
 
@@ -179,6 +180,7 @@ const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromHwcap() {
     has_lpae = true;
   }
 #endif
+  smp = false;
 
   return new ArmInstructionSetFeatures(smp, has_div, has_lpae);
 }
@@ -199,7 +201,7 @@ static void bad_divide_inst_handle(int signo ATTRIBUTE_UNUSED, siginfo_t* si ATT
 }
 
 const ArmInstructionSetFeatures* ArmInstructionSetFeatures::FromAssembly() {
-  const bool smp = true;
+  const bool smp = false;
 
   // See if have a sdiv instruction.  Register a signal handler and try to execute an sdiv
   // instruction.  If we get a SIGILL then it's not supported.
@@ -246,11 +248,7 @@ uint32_t ArmInstructionSetFeatures::AsBitmap() const {
 
 std::string ArmInstructionSetFeatures::GetFeatureString() const {
   std::string result;
-  if (IsSmp()) {
-    result += "smp";
-  } else {
-    result += "-smp";
-  }
+  result += "-smp";
   if (has_div_) {
     result += ",div";
   } else {
@@ -283,7 +281,8 @@ const InstructionSetFeatures* ArmInstructionSetFeatures::AddFeaturesFromSplitStr
       return nullptr;
     }
   }
-  return new ArmInstructionSetFeatures(smp, has_div, has_atomic_ldrd_strd);
+  defSmp = false;
+  return new ArmInstructionSetFeatures(defSmp, has_div, has_atomic_ldrd_strd);
 }
 
 }  // namespace art
